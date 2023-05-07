@@ -2,6 +2,7 @@
 import sqlite3
 import datetime
 
+
 def search(cursor):
     where = input("Enter search query:")
     query = f"SELECT * FROM Users WHERE customer_email LIKE '{where}%'"
@@ -58,36 +59,56 @@ def pull_email(cursor):
         print("Emails loaded.")
     return email_list
 
+def main_menu(cursor):
+    func_container = {
+        "search": search,
+        "add": add,
+        "edit": edit
+    }
+
+    while True:
+        print("(1) to search User")
+        print("(2) to add new User")
+        print("(3) to edit User")
+        print("(4) to quit")
+        answer = input("Select an option:")
+        if answer == '1':
+            func_container["search"](cursor)
+        elif answer == '2':
+            func_container["add"](cursor)
+        elif answer == '3':
+            func_container["edit"](cursor)
+        elif answer == '4':
+            break
+        else:
+            print("Invalid selection.")
+
+def login(cursor):
+    email = input("Enter email:")
+    password = input("Enter password:")
+    query = "SELECT customer_email, pass_word FROM Users WHERE customer_email = ? AND pass_word = ?"
+    values = (email, password)
+    row = cursor.execute(query, values).fetchone()
+    if row is None:
+        print("Incorrect email or password.")
+        return False
+    else:
+        print("Login successful.")
+        return True
+
 connection = sqlite3.connect('capstone.db')
 cursor = connection.cursor()
 make_database(cursor)
 email_list = pull_email(cursor)
 
-func_container = {
-    "search": search,
-    "add": add,
-    "edit": edit
-}
+logged_in = False
+while not logged_in:
+    logged_in = login(cursor)
 
-while True:
-    print("(1) to search User")
-    print("(2) to add new User")
-    print("(3) to edit User")
-    print("(4) to quit")
-    answer = input("Select an option:")
-    if answer == '1':
-        func_container["search"](cursor)
-    elif answer == '2':
-        func_container["add"](cursor)
-    elif answer == '3':
-        func_container["edit"](cursor)
-    elif answer == '4':
-        break
-    else:
-        print("Invalid selection.")
+if logged_in:
+    main_menu(cursor)
 
 connection.commit()
 connection.close()
-
 
 
